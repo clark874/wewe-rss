@@ -1,6 +1,7 @@
 import { Input, Button, ButtonGroup } from "@nextui-org/react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SearchIcon } from "./SearchIcon";
+import { defaultKeywords, defaultSearchMode } from "@web/utils/env";
 
 export type SearchMode = "AND" | "OR";
 
@@ -10,8 +11,20 @@ export interface SearchBarProps {
 }
 
 export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
-  const [searchInput, setSearchInput] = useState("");
-  const [searchMode, setSearchMode] = useState<SearchMode>("AND");
+  // 将关键词数组转换为输入字符串
+  const keywordsToString = (keywords: string[]) => {
+    return keywords.map(keyword => `"${keyword}"`).join(" ");
+  };
+
+  const [searchInput, setSearchInput] = useState(keywordsToString(defaultKeywords));
+  const [searchMode, setSearchMode] = useState<SearchMode>(defaultSearchMode as SearchMode);
+
+  // 在组件加载时触发一次搜索
+  useEffect(() => {
+    if (defaultKeywords.length > 0) {
+      onSearch(defaultKeywords, searchMode);
+    }
+  }, []);
 
   // 解析搜索关键词
   const parseKeywords = (input: string): string[] => {
@@ -33,7 +46,13 @@ export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
 
   // 切换搜索模式
   const toggleSearchMode = () => {
-    setSearchMode(prev => prev === "AND" ? "OR" : "AND");
+    const newMode = searchMode === "AND" ? "OR" : "AND";
+    setSearchMode(newMode);
+    // 当切换模式时，如果有关键词则立即触发搜索
+    const keywords = parseKeywords(searchInput);
+    if (keywords.length > 0) {
+      onSearch(keywords, newMode);
+    }
   };
 
   return (
