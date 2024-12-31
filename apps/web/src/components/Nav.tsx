@@ -13,6 +13,8 @@ import { GitHubIcon } from './GitHubIcon';
 import { useLocation } from 'react-router-dom';
 import { appVersion, serverOriginUrl } from '@web/utils/env';
 import { useEffect, useState } from 'react';
+import { SearchBar } from './SearchBar';
+import { useSearchStore } from '@web/store/searchStore';
 
 const navbarItemLink = [
   {
@@ -23,15 +25,12 @@ const navbarItemLink = [
     href: '/accounts',
     name: '账号管理',
   },
-  // {
-  //   href: '/settings',
-  //   name: '设置',
-  // },
 ];
 
 const Nav = () => {
   const { pathname } = useLocation();
   const [releaseVersion, setReleaseVersion] = useState(appVersion);
+  const { setKeywords, setSearchMode } = useSearchStore();
 
   useEffect(() => {
     fetch('https://api.github.com/repos/cooderl/wewe-rss/releases/latest')
@@ -42,7 +41,11 @@ const Nav = () => {
   }, []);
 
   const isFoundNewVersion = releaseVersion > appVersion;
-  console.log('isFoundNewVersion: ', isFoundNewVersion);
+
+  const handleSearch = (keywords: string[], mode: "AND" | "OR") => {
+    setKeywords(keywords);
+    setSearchMode(mode);
+  };
 
   return (
     <div>
@@ -79,27 +82,35 @@ const Nav = () => {
                     ? `${serverOriginUrl}/favicon.ico`
                     : 'https://r2-assets.111965.xyz/wewe-rss.png'
                 }
-              ></Image>
+              />
             </Badge>
             <p className="font-bold text-inherit">WeWe RSS</p>
           </NavbarBrand>
         </Tooltip>
+
         <NavbarContent className="hidden sm:flex gap-4" justify="center">
-          {navbarItemLink.map((item) => {
-            return (
-              <NavbarItem
-                isActive={pathname.startsWith(item.href)}
-                key={item.href}
-              >
-                <Link color="foreground" href={item.href}>
-                  {item.name}
-                </Link>
-              </NavbarItem>
-            );
-          })}
+          {pathname.startsWith('/feeds') && (
+            <NavbarItem>
+              <SearchBar
+                className="w-[400px]"
+                onSearch={handleSearch}
+              />
+            </NavbarItem>
+          )}
+          {navbarItemLink.map((item) => (
+            <NavbarItem
+              isActive={pathname.startsWith(item.href)}
+              key={item.href}
+            >
+              <Link color="foreground" href={item.href}>
+                {item.name}
+              </Link>
+            </NavbarItem>
+          ))}
         </NavbarContent>
+
         <NavbarContent justify="end">
-          <ThemeSwitcher></ThemeSwitcher>
+          <ThemeSwitcher />
           <Link
             href="https://github.com/cooderl/wewe-rss"
             target="_blank"

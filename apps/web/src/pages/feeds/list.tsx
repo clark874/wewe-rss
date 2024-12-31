@@ -14,9 +14,11 @@ import {
 import { trpc } from '@web/utils/trpc';
 import dayjs from 'dayjs';
 import { useParams } from 'react-router-dom';
+import { useSearchStore } from '@web/store/searchStore';
 
 const ArticleList: FC = () => {
   const { id } = useParams();
+  const { keywords, searchMode } = useSearchStore();
 
   const mpId = id || '';
 
@@ -31,13 +33,26 @@ const ArticleList: FC = () => {
       },
     );
 
-  const items = useMemo(() => {
+  const filteredItems = useMemo(() => {
     const items = data
       ? data.pages.reduce((acc, page) => [...acc, ...page.items], [] as any[])
       : [];
 
-    return items;
-  }, [data]);
+    if (!keywords || keywords.length === 0) return items;
+
+    return items.filter((item) => {
+      const title = item.title.toLowerCase();
+      if (searchMode === 'AND') {
+        return keywords.every(keyword => 
+          title.includes(keyword.toLowerCase())
+        );
+      } else {
+        return keywords.some(keyword => 
+          title.includes(keyword.toLowerCase())
+        );
+      }
+    });
+  }, [data, keywords, searchMode]);
 
   return (
     <div>
@@ -73,7 +88,7 @@ const ArticleList: FC = () => {
         <TableBody
           isLoading={isLoading}
           emptyContent={'暂无数据'}
-          items={items || []}
+          items={filteredItems || []}
           loadingContent={<Spinner />}
         >
           {(item) => (
