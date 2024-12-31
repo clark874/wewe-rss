@@ -1,16 +1,18 @@
-import { Input, Button, ButtonGroup } from "@nextui-org/react";
+import { Input, Button, ButtonGroup, Tooltip } from "@nextui-org/react";
 import { useState, useCallback, useEffect } from "react";
 import { SearchIcon } from "./SearchIcon";
 import { defaultKeywords, defaultSearchMode } from "@web/utils/env";
+import { useSearchStore } from "@web/store/searchStore";
 
 export type SearchMode = "AND" | "OR";
 
 export interface SearchBarProps {
   onSearch: (keywords: string[], mode: SearchMode) => void;
+  onDeduplicateChange: (deduplicate: boolean) => void;
   className?: string;
 }
 
-export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, onDeduplicateChange, className = "" }: SearchBarProps) => {
   // 将关键词数组转换为输入字符串
   const keywordsToString = (keywords: string[]) => {
     return keywords.map(keyword => `"${keyword}"`).join(" ");
@@ -18,6 +20,7 @@ export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
 
   const [searchInput, setSearchInput] = useState(keywordsToString(defaultKeywords));
   const [searchMode, setSearchMode] = useState<SearchMode>(defaultSearchMode as SearchMode);
+  const { deduplicate } = useSearchStore();
 
   // 在组件加载时触发一次搜索
   useEffect(() => {
@@ -55,6 +58,11 @@ export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
     }
   };
 
+  // 切换去重状态
+  const toggleDeduplicate = () => {
+    onDeduplicateChange(!deduplicate);
+  };
+
   return (
     <div className={`flex gap-2 ${className}`}>
       <Input
@@ -83,6 +91,15 @@ export const SearchBar = ({ onSearch, className = "" }: SearchBarProps) => {
         >
           OR
         </Button>
+        <Tooltip content="去除重复标题">
+          <Button
+            color="primary"
+            variant={deduplicate ? "solid" : "bordered"}
+            onClick={toggleDeduplicate}
+          >
+            去重
+          </Button>
+        </Tooltip>
       </ButtonGroup>
     </div>
   );

@@ -18,7 +18,7 @@ import { useSearchStore } from '@web/store/searchStore';
 
 const ArticleList: FC = () => {
   const { id } = useParams();
-  const { keywords, searchMode } = useSearchStore();
+  const { keywords, searchMode, deduplicate, setDeduplicate } = useSearchStore();
 
   const mpId = id || '';
 
@@ -38,9 +38,23 @@ const ArticleList: FC = () => {
       ? data.pages.reduce((acc, page) => [...acc, ...page.items], [] as any[])
       : [];
 
-    if (!keywords || keywords.length === 0) return items;
+    if (!keywords || keywords.length === 0) {
+      // 如果没有搜索关键词，但需要去重
+      if (deduplicate) {
+        const seen = new Set<string>();
+        return items.filter(item => {
+          if (seen.has(item.title)) {
+            return false;
+          }
+          seen.add(item.title);
+          return true;
+        });
+      }
+      return items;
+    }
 
-    return items.filter((item) => {
+    // 先根据关键词过滤
+    const filtered = items.filter((item) => {
       const title = item.title.toLowerCase();
       if (searchMode === 'AND') {
         return keywords.every(keyword => 
@@ -52,7 +66,21 @@ const ArticleList: FC = () => {
         );
       }
     });
-  }, [data, keywords, searchMode]);
+
+    // 如果需要去重，对过滤后的结果进行去重
+    if (deduplicate) {
+      const seen = new Set<string>();
+      return filtered.filter(item => {
+        if (seen.has(item.title)) {
+          return false;
+        }
+        seen.add(item.title);
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [data, keywords, searchMode, deduplicate]);
 
   return (
     <div>

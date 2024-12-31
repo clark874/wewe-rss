@@ -1,18 +1,20 @@
 import { create } from 'zustand';
-import { SearchMode } from '@web/components/SearchBar';
+import type { SearchMode } from '@web/components/SearchBar';
 
-interface SearchState {
+interface SearchStore {
   keywords: string[];
   searchMode: SearchMode;
+  deduplicate: boolean;
   setKeywords: (keywords: string[]) => void;
   setSearchMode: (mode: SearchMode) => void;
-  reset: () => void;
+  setDeduplicate: (deduplicate: boolean) => void;
 }
 
-export const useSearchStore = create<SearchState>((set) => ({
+export const useSearchStore = create<SearchStore>((set) => ({
   keywords: [],
   searchMode: 'AND',
+  deduplicate: false,
   setKeywords: (keywords) => set({ keywords }),
-  setSearchMode: (mode) => set({ searchMode: mode }),
-  reset: () => set({ keywords: [], searchMode: 'AND' }),
+  setSearchMode: (searchMode) => set({ searchMode }),
+  setDeduplicate: (deduplicate) => set({ deduplicate }),
 }));

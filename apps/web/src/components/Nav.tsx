@@ -30,7 +30,7 @@ const navbarItemLink = [
 const Nav = () => {
   const { pathname } = useLocation();
   const [releaseVersion, setReleaseVersion] = useState(appVersion);
-  const { setKeywords, setSearchMode } = useSearchStore();
+  const { setKeywords, setSearchMode, setDeduplicate } = useSearchStore();
 
   useEffect(() => {
     fetch('https://api.github.com/repos/cooderl/wewe-rss/releases/latest')
@@ -45,6 +45,10 @@ const Nav = () => {
   const handleSearch = (keywords: string[], mode: "AND" | "OR") => {
     setKeywords(keywords);
     setSearchMode(mode);
+  };
+
+  const handleDeduplicateChange = (deduplicate: boolean) => {
+    setDeduplicate(deduplicate);
   };
 
   return (
@@ -94,6 +98,7 @@ const Nav = () => {
               <SearchBar
                 className="w-[400px]"
                 onSearch={handleSearch}
+                onDeduplicateChange={handleDeduplicateChange}
               />
             </NavbarItem>
           )}
